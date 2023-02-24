@@ -1,28 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"gee"
-	jsoniter "github.com/json-iterator/go"
 	"net/http"
 )
-
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func main() {
 	app := gee.New()
 
-	app.Get("/", func(resp http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(resp, "hello, this path is %v", req.URL.Path)
+	app.Get("/", func(c *gee.Context) {
+		c.HTML(http.StatusOK, "<h1>Hello Gee</h1>")
 	})
 
-	app.Get("/header", func(resp http.ResponseWriter, req *http.Request) {
-		maps := make(map[string]any)
-		for k, v := range req.Header {
-			maps[k] = v
-		}
-		b, _ := json.Marshal(maps)
-		fmt.Fprintf(resp, string(b))
+	app.Get("/hello", func(c *gee.Context) {
+		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
 
 	app.Run(":8080")
