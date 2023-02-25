@@ -13,7 +13,7 @@ func main() {
 	})
 
 	app.Get("/hello", func(ctx *gee.Context) {
-		ctx.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
+		ctx.String(http.StatusOK, "hello %s, you're at %s\n", ctx.Query("name"), ctx.Path)
 	})
 
 	app.Post("/login", func(ctx *gee.Context) {

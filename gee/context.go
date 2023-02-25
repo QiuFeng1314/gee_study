@@ -2,13 +2,13 @@ package gee
 
 import (
 	"fmt"
-	jsoniter "github.com/json-iterator/go"
 	"net/http"
+	"util"
 )
 
-var json = jsoniter.ConfigCompatibleWithStandardLibrary
-
 type H map[string]any
+
+type HandlerFunc func(*Context)
 
 type Context struct {
 	Resp       http.ResponseWriter
@@ -53,7 +53,7 @@ func (ctx *Context) String(code int, format string, values ...any) {
 func (ctx *Context) JSON(code int, obj any) {
 	ctx.SetHeader("Context-Type", "application/json")
 	ctx.Status(code)
-	encoder := json.NewEncoder(ctx.Resp)
+	encoder := util.Json.NewEncoder(ctx.Resp)
 	if err := encoder.Encode(obj); err != nil {
 		http.Error(ctx.Resp, err.Error(), http.StatusInternalServerError)
 	}
