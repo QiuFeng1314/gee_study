@@ -13,9 +13,10 @@ type HandlerFunc func(*Context)
 type Context struct {
 	Resp       http.ResponseWriter
 	Req        *http.Request
-	Path       string // 请求路径
-	Method     string // 请求类型
-	StatusCode int    // 状态码
+	Path       string            // 请求路径
+	Method     string            // 请求类型
+	Params     map[string]string // 参数
+	StatusCode int               // 状态码
 }
 
 func newContext(resp http.ResponseWriter, req *http.Request) (ctx *Context) {
@@ -25,6 +26,10 @@ func newContext(resp http.ResponseWriter, req *http.Request) (ctx *Context) {
 		Path:   req.URL.Path,
 		Method: req.Method,
 	}
+}
+
+func (ctx *Context) Param(key string) string {
+	return ctx.Params[key]
 }
 
 func (ctx *Context) PostForm(key string) string {
