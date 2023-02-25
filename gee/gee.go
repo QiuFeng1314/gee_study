@@ -12,36 +12,59 @@ var (
 	PUT    = "PUT"
 )
 
+type RouterGroup struct {
+	prefix      string
+	middlewares []HandlerFunc // 支持中间件
+	parent      *RouterGroup  // 支持嵌套
+	engine      *Engine       // 所有的分组共享一个Engine
+}
+
 type Engine struct {
+	*RouterGroup
 	router *router
+	groups []*RouterGroup // 存储所有的分组
 }
 
 func New() (engine *Engine) {
-	return &Engine{router: newRouter()}
+	engine = &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine}
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return
 }
 
 func (engine *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	engine.router.handle(newContext(resp, req))
 }
 
-func (engine *Engine) addRouter(method, pattern string, handler HandlerFunc) {
-	engine.router.addRouter(method, pattern, handler)
+func (group *RouterGroup) Group(prefix string) (newGroup *RouterGroup) {
+	engine := group.engine
+	newGroup = &RouterGroup{
+		prefix: group.prefix + prefix,
+		parent: group,
+		engine: engine,
+	}
+	engine.groups = append(engine.groups, newGroup)
+	return
 }
 
-func (engine *Engine) Get(pattern string, handler HandlerFunc) {
-	engine.addRouter(GET, pattern, handler)
+func (group *RouterGroup) addRouter(method, pattern string, handler HandlerFunc) {
+	group.engine.router.addRouter(method, group.prefix+pattern, handler)
 }
 
-func (engine *Engine) Post(pattern string, handler HandlerFunc) {
-	engine.addRouter(POST, pattern, handler)
+func (group *RouterGroup) Get(pattern string, handler HandlerFunc) {
+	group.addRouter(GET, pattern, handler)
 }
 
-func (engine *Engine) Put(pattern string, handler HandlerFunc) {
-	engine.addRouter(PUT, pattern, handler)
+func (group *RouterGroup) Post(pattern string, handler HandlerFunc) {
+	group.addRouter(POST, pattern, handler)
 }
 
-func (engine *Engine) Delete(pattern string, handler HandlerFunc) {
-	engine.addRouter(DELETE, pattern, handler)
+func (group *RouterGroup) Put(pattern string, handler HandlerFunc) {
+	group.addRouter(PUT, pattern, handler)
+}
+
+func (group *RouterGroup) Delete(pattern string, handler HandlerFunc) {
+	group.addRouter(DELETE, pattern, handler)
 }
 
 func (engine *Engine) Run(port string) (err error) {
