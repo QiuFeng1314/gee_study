@@ -27,5 +27,9 @@ func main() {
 		})
 	})
 
+	app.Get("/assets/*filepath", func(ctx *gee.Context) {
+		ctx.JSON(http.StatusOK, gee.H{"filepath": ctx.Param("filepath")})
+	})
+
 	app.Run(":8080")
 }
