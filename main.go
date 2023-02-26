@@ -6,8 +6,7 @@ import (
 )
 
 func main() {
-	app := gee.New()
-	app.Use(gee.Logger())
+	app := gee.Default()
 	{
 		// 加载文件路径
 		app.LoadHTMLGlob("templates/*")
@@ -22,6 +21,11 @@ func main() {
 				"title": "gee",
 				"name":  "景帅",
 			})
+		})
+
+		app.Get("/panic", func(ctx *gee.Context) {
+			names := []string{"ok"}
+			ctx.JSON(http.StatusOK, names[2])
 		})
 
 		app.Static("/assets", "./static")

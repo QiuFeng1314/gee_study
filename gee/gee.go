@@ -38,8 +38,15 @@ func New() (engine *Engine) {
 }
 
 // Use 使用中间件，就是把中间件加到队列中
-func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
+func (group *RouterGroup) Use(middlewares ...HandlerFunc) *RouterGroup {
 	group.middlewares = append(group.middlewares, middlewares...)
+	return group
+}
+
+func Default() (engine *Engine) {
+	engine = New()
+	engine.Use(Logger()).Use(Recovery())
+	return
 }
 
 func (engine *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
