@@ -8,10 +8,24 @@ import (
 func main() {
 	app := gee.New()
 	app.Use(gee.Logger())
+	{
+		// 加载文件路径
+		app.LoadHTMLGlob("templates/*")
+		// 自定义函数，提供给前端使用
+		//app.SetFuncMap(template.FuncMap{
+		//	"Date": func() {
+		//
+		//	},
+		//})
+		app.Get("/", func(ctx *gee.Context) {
+			ctx.HTML(http.StatusOK, "custom.tmpl", gee.H{
+				"title": "gee",
+				"name":  "景帅",
+			})
+		})
 
-	app.Get("/", func(ctx *gee.Context) {
-		ctx.HTML(http.StatusOK, "<h1>Hello Gee</h1>")
-	})
+		app.Static("/assets", "./static")
+	}
 
 	v1 := app.Group("/v1")
 	v1.Use(gee.OnlyForV1())

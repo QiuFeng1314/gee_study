@@ -19,15 +19,17 @@ type Context struct {
 	StatusCode int               // 状态码
 	handlers   []HandlerFunc     // 中间件
 	index      int
+	engine     *Engine
 }
 
 func newContext(resp http.ResponseWriter, req *http.Request) (ctx *Context) {
 	return &Context{
-		Resp:   resp,
-		Req:    req,
-		Path:   req.URL.Path,
-		Method: req.Method,
-		index:  -1,
+		Resp:       resp,
+		Req:        req,
+		Path:       req.URL.Path,
+		Method:     req.Method,
+		StatusCode: http.StatusOK,
+		index:      -1,
 	}
 }
 
@@ -54,6 +56,11 @@ func (ctx *Context) Status(code int) {
 	ctx.Resp.WriteHeader(code)
 }
 
+func (ctx *Context) Fatal(code int, err string) {
+	ctx.index = len(ctx.handlers)
+	ctx.JSON(code, H{"message": err})
+}
+
 func (ctx *Context) SetHeader(key string, value string) {
 	ctx.Resp.Header().Set(key, value)
 }
@@ -78,8 +85,10 @@ func (ctx *Context) Data(code int, data []byte) {
 	ctx.Resp.Write(data)
 }
 
-func (ctx *Context) HTML(code int, html string) {
+func (ctx *Context) HTML(code int, name string, data any) {
 	ctx.SetHeader("Context-Type", "text/html")
 	ctx.Status(code)
-	ctx.Resp.Write([]byte(html))
+	if err := ctx.engine.htmlTemplates.ExecuteTemplate(ctx.Resp, name, data); err != nil {
+		ctx.Fatal(http.StatusInternalServerError, err.Error())
+	}
 }
