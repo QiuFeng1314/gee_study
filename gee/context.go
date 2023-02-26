@@ -17,6 +17,8 @@ type Context struct {
 	Method     string            // 请求类型
 	Params     map[string]string // 参数
 	StatusCode int               // 状态码
+	handlers   []HandlerFunc     // 中间件
+	index      int
 }
 
 func newContext(resp http.ResponseWriter, req *http.Request) (ctx *Context) {
@@ -25,6 +27,13 @@ func newContext(resp http.ResponseWriter, req *http.Request) (ctx *Context) {
 		Req:    req,
 		Path:   req.URL.Path,
 		Method: req.Method,
+		index:  -1,
+	}
+}
+
+func (ctx *Context) Next() {
+	for ctx.index++; ctx.index < len(ctx.handlers); ctx.index++ {
+		ctx.handlers[ctx.index](ctx)
 	}
 }
 

@@ -3,6 +3,7 @@ package gee
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 var (
@@ -32,8 +33,23 @@ func New() (engine *Engine) {
 	return
 }
 
+// Use 使用中间件，就是把中间件加到队列中
+func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
+	group.middlewares = append(group.middlewares, middlewares...)
+}
+
 func (engine *Engine) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	engine.router.handle(newContext(resp, req))
+
+	var middlewares []HandlerFunc
+
+	for _, v := range engine.groups {
+		if strings.HasPrefix(req.URL.Path, v.prefix) {
+			middlewares = append(middlewares, v.middlewares...)
+		}
+	}
+	ctx := newContext(resp, req)
+	ctx.handlers = middlewares
+	engine.router.handle(ctx)
 }
 
 func (group *RouterGroup) Group(prefix string) (newGroup *RouterGroup) {
