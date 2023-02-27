@@ -45,7 +45,7 @@ func (group *RouterGroup) Use(middlewares ...HandlerFunc) *RouterGroup {
 
 func Default() (engine *Engine) {
 	engine = New()
-	engine.Use(Logger()).Use(Recovery())
+	engine.Use(Recovery()).Use(Logger())
 	return
 }
 
@@ -95,12 +95,8 @@ func (group *RouterGroup) Delete(pattern string, handler HandlerFunc) {
 	group.addRouter(DELETE, pattern, handler)
 }
 
-func (engine *Engine) Run(port string) (err error) {
-	err = http.ListenAndServe(port, engine)
-	if err == nil {
-		log.Printf("gee start success! server port is %q...", port)
-	}
-	return
+func (engine *Engine) Run(port string) {
+	log.Fatal(http.ListenAndServe(port, engine))
 }
 
 func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {

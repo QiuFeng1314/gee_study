@@ -28,6 +28,7 @@ func Recovery() HandlerFunc {
 			if err := recover(); err != nil {
 				msg := fmt.Sprintf("%s", err)
 				log.Printf("%s\n", trace(msg))
+				ctx.Status(http.StatusInternalServerError)
 				ctx.Fatal(http.StatusInternalServerError, "Internal Server Error")
 			}
 		}()
